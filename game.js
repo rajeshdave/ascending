@@ -13,6 +13,10 @@ const state = {
     mascotEmoji: '🐵',
     activeConfetti: false,
     audioContext: null,
+    // Tutorial State
+    tutorialMode: 'ascending',
+    isTutorialPlaying: false,
+    tutorialTimerIds: []
 };
 
 // Mascot options to keep the game fun and fresh
@@ -32,6 +36,7 @@ const screens = {
     lobby: document.getElementById('lobby-screen'),
     play: document.getElementById('play-screen'),
     victory: document.getElementById('victory-screen'),
+    tutorial: document.getElementById('tutorial-screen'),
 };
 
 const buttons = {
@@ -42,6 +47,14 @@ const buttons = {
     prevLevel: document.getElementById('btn-prev-level'),
     replay: document.getElementById('btn-replay'),
     nextLevel: document.getElementById('btn-next-level'),
+    // Tutorial Buttons
+    tutorial: document.getElementById('btn-tutorial'),
+    tutHome: document.getElementById('btn-tutorial-home'),
+    tutMute: document.getElementById('btn-tutorial-mute'),
+    tutAsc: document.getElementById('btn-tut-ascending'),
+    tutDesc: document.getElementById('btn-tut-descending'),
+    tutPlay: document.getElementById('btn-play-tutorial'),
+    tutPlayGame: document.getElementById('btn-tut-play-game'),
 };
 
 const elements = {
@@ -52,6 +65,10 @@ const elements = {
     confettiCanvas: document.getElementById('confetti-canvas'),
     victoryMascot: document.querySelector('.victory-mascot'),
     levelBtns: document.querySelectorAll('.level-btn'),
+    // Tutorial Elements
+    tutText: document.getElementById('tutorial-text'),
+    tutTrack: document.getElementById('tutorial-track'),
+    tutMascot: document.getElementById('tutorial-mascot'),
 };
 
 // ==========================================================================
@@ -535,6 +552,190 @@ window.addEventListener('resize', () => {
 });
 
 // ==========================================================================
+// 📖 TUTORIAL ENGINE
+// ==========================================================================
+function initTutorial(mode) {
+    stopTutorialAnimation();
+    state.tutorialMode = mode;
+    
+    // Set tabs active
+    if (mode === 'ascending') {
+        buttons.tutAsc.classList.add('active');
+        buttons.tutDesc.classList.remove('active');
+        elements.tutText.innerText = "Ascending means numbers go UP from smallest to biggest!";
+        elements.tutTrack.className = "track-ascending";
+    } else {
+        buttons.tutAsc.classList.remove('active');
+        buttons.tutDesc.classList.add('active');
+        elements.tutText.innerText = "Descending means numbers go DOWN from biggest to smallest!";
+        elements.tutTrack.className = "track-descending";
+    }
+
+    // Build 5 fixed steps
+    buildTutorialSteps();
+    
+    // Position mascot
+    positionTutorialMascotAtStart();
+
+    buttons.tutPlay.innerText = "▶️ Watch Tutorial";
+    
+    const explanation = mode === 'ascending' 
+        ? "Let's learn Ascending numbers. Ascending means going up from smallest to biggest. Click watch to see how!" 
+        : "Let's learn Descending numbers. Descending means sliding down from biggest to smallest. Click watch to see how!";
+    speakText(explanation);
+}
+
+function buildTutorialSteps() {
+    // Clear previous
+    const steps = elements.tutTrack.querySelectorAll('.track-step');
+    steps.forEach(s => s.remove());
+
+    const count = 5;
+    for (let i = 0; i < count; i++) {
+        const step = document.createElement('div');
+        step.classList.add('track-step');
+        step.setAttribute('data-index', i);
+
+        let stepHeight;
+        if (state.tutorialMode === 'ascending') {
+            stepHeight = 25 + (i * (65 / (count - 1)));
+        } else {
+            stepHeight = 90 - (i * (65 / (count - 1)));
+        }
+        step.style.height = `${stepHeight}%`;
+
+        const hintSpan = document.createElement('span');
+        hintSpan.classList.add('track-step-hint');
+        hintSpan.innerText = `Step ${i + 1}`;
+        step.appendChild(hintSpan);
+
+        const numberDiv = document.createElement('div');
+        numberDiv.classList.add('track-step-number');
+        numberDiv.innerText = '?';
+        step.appendChild(numberDiv);
+
+        elements.tutTrack.appendChild(step);
+    }
+}
+
+function positionTutorialMascotAtStart() {
+    elements.tutMascot.innerText = state.mascotEmoji;
+    
+    setTimeout(() => {
+        const firstStep = elements.tutTrack.querySelector('.track-step[data-index="0"]');
+        if (firstStep) {
+            const stepRect = firstStep.getBoundingClientRect();
+            const trackRect = elements.tutTrack.getBoundingClientRect();
+
+            const bottomPos = 12;
+            const leftPos = (stepRect.left - trackRect.left) - 50;
+
+            elements.tutMascot.style.bottom = `${bottomPos}px`;
+            elements.tutMascot.style.left = `${Math.max(10, leftPos)}px`;
+        }
+    }, 50);
+}
+
+function animateTutorialMascotToStep(stepIndex) {
+    const step = elements.tutTrack.querySelector(`.track-step[data-index="${stepIndex}"]`);
+    if (!step) return;
+
+    const stepRect = step.getBoundingClientRect();
+    const trackRect = elements.tutTrack.getBoundingClientRect();
+
+    const bottomPos = (trackRect.bottom - stepRect.top) + 5;
+    const leftPos = (stepRect.left - trackRect.left) + (stepRect.width / 2) - 28;
+
+    elements.tutMascot.style.bottom = `${bottomPos}px`;
+    elements.tutMascot.style.left = `${leftPos}px`;
+    
+    elements.tutMascot.style.transform = "scale(1.3) translateY(-10px)";
+    setTimeout(() => {
+        elements.tutMascot.style.transform = "scale(1) translateY(0)";
+    }, 300);
+}
+
+function stopTutorialAnimation() {
+    // Clear all scheduled timeouts
+    state.tutorialTimerIds.forEach(id => clearTimeout(id));
+    state.tutorialTimerIds = [];
+    state.isTutorialPlaying = false;
+    buttons.tutPlay.innerText = "▶️ Watch Tutorial";
+    window.speechSynthesis.cancel();
+}
+
+function runTutorialAnimation() {
+    if (state.isTutorialPlaying) {
+        stopTutorialAnimation();
+        initTutorial(state.tutorialMode);
+        return;
+    }
+
+    state.isTutorialPlaying = true;
+    buttons.tutPlay.innerText = "⏹️ Stop Tutorial";
+
+    // Clear steps
+    const steps = elements.tutTrack.querySelectorAll('.track-step');
+    steps.forEach(step => {
+        step.classList.remove('filled');
+        step.querySelector('.track-step-number').innerText = '?';
+    });
+    positionTutorialMascotAtStart();
+
+    const sequence = state.tutorialMode === 'ascending' ? [1, 2, 3, 4, 5] : [5, 4, 3, 2, 1];
+    
+    // Narrate start
+    const introSpeech = state.tutorialMode === 'ascending'
+        ? "Let's count up from smallest to biggest! Ready?"
+        : "Let's count down from biggest to smallest! Ready?";
+    speakText(introSpeech);
+
+    let delay = 3000; // Let the intro read
+
+    sequence.forEach((num, idx) => {
+        const tId = setTimeout(() => {
+            // Fill step
+            const step = steps[idx];
+            step.classList.add('filled');
+            step.querySelector('.track-step-number').innerText = num;
+
+            // Animate mascot
+            animateTutorialMascotToStep(idx);
+            playSynthSound('correct');
+
+            // Speak the number
+            speakText(`${num}`);
+        }, delay);
+        state.tutorialTimerIds.push(tId);
+        delay += 1500;
+    });
+
+    // Final celebration
+    const tIdFinal = setTimeout(() => {
+        playSynthSound('victory');
+        const finalSpeech = state.tutorialMode === 'ascending'
+            ? "Look! The numbers go up: One, Two, Three, Four, Five. That is Ascending!"
+            : "Look! The numbers go down: Five, Four, Three, Two, One. That is Descending!";
+        
+        elements.tutText.innerText = state.tutorialMode === 'ascending'
+            ? "🌟 1, 2, 3, 4, 5 are Ascending numbers!"
+            : "🌟 5, 4, 3, 2, 1 are Descending numbers!";
+            
+        speakText(finalSpeech);
+        
+        // Quick visual jump celebration
+        elements.tutMascot.classList.add('celebrate-animation');
+        
+        setTimeout(() => {
+            elements.tutMascot.classList.remove('celebrate-animation');
+            stopTutorialAnimation();
+        }, 5000);
+
+    }, delay);
+    state.tutorialTimerIds.push(tIdFinal);
+}
+
+// ==========================================================================
 // 🎮 GENERAL EVENT HANDLERS & INITIALIZATION
 // ==========================================================================
 
@@ -555,6 +756,14 @@ buttons.descending.addEventListener('click', () => {
     state.mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
     showScreen('play');
     startLevel(1);
+});
+
+buttons.tutorial.addEventListener('click', () => {
+    initAudio();
+    playSynthSound('click');
+    showScreen('tutorial');
+    state.mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
+    initTutorial('ascending');
 });
 
 // 2. Navigation
@@ -579,10 +788,14 @@ buttons.mute.addEventListener('click', () => {
     if (state.isMuted) {
         buttons.mute.innerText = '🔇 Mute';
         buttons.mute.style.opacity = '0.7';
+        buttons.tutMute.innerText = '🔇 Mute';
+        buttons.tutMute.style.opacity = '0.7';
         window.speechSynthesis.cancel();
     } else {
         buttons.mute.innerText = '🔊 Audio';
         buttons.mute.style.opacity = '1';
+        buttons.tutMute.innerText = '🔊 Audio';
+        buttons.tutMute.style.opacity = '1';
         initAudio();
         speakText("Sound is back on!");
     }
@@ -593,7 +806,6 @@ buttons.prevLevel.addEventListener('click', () => {
     playSynthSound('click');
     if (state.currentLevel > 1) {
         showScreen('play');
-        // Choose a new random mascot for the next round
         state.mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
         startLevel(state.currentLevel - 1);
     }
@@ -602,7 +814,6 @@ buttons.prevLevel.addEventListener('click', () => {
 buttons.replay.addEventListener('click', () => {
     playSynthSound('click');
     showScreen('play');
-    // Fresh mascot on retry
     state.mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
     startLevel(state.currentLevel);
 });
@@ -611,10 +822,57 @@ buttons.nextLevel.addEventListener('click', () => {
     playSynthSound('click');
     if (state.currentLevel < 5) {
         showScreen('play');
-        // Choose a new random mascot for the next round
         state.mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
         startLevel(state.currentLevel + 1);
     }
+});
+
+// 6. Tutorial screen navigation
+buttons.tutHome.addEventListener('click', () => {
+    playSynthSound('click');
+    stopTutorialAnimation();
+    showScreen('lobby');
+});
+
+buttons.tutMute.addEventListener('click', () => {
+    state.isMuted = !state.isMuted;
+    if (state.isMuted) {
+        buttons.tutMute.innerText = '🔇 Mute';
+        buttons.tutMute.style.opacity = '0.7';
+        buttons.mute.innerText = '🔇 Mute';
+        buttons.mute.style.opacity = '0.7';
+        window.speechSynthesis.cancel();
+    } else {
+        buttons.tutMute.innerText = '🔊 Audio';
+        buttons.tutMute.style.opacity = '1';
+        buttons.mute.innerText = '🔊 Audio';
+        buttons.mute.style.opacity = '1';
+        initAudio();
+        speakText("Sound is back on!");
+    }
+});
+
+buttons.tutAsc.addEventListener('click', () => {
+    playSynthSound('click');
+    initTutorial('ascending');
+});
+
+buttons.tutDesc.addEventListener('click', () => {
+    playSynthSound('click');
+    initTutorial('descending');
+});
+
+buttons.tutPlay.addEventListener('click', () => {
+    playSynthSound('click');
+    runTutorialAnimation();
+});
+
+buttons.tutPlayGame.addEventListener('click', () => {
+    playSynthSound('click');
+    stopTutorialAnimation();
+    state.gameMode = state.tutorialMode;
+    showScreen('play');
+    startLevel(1);
 });
 
 // Ensure voices are loaded (browser quirks)

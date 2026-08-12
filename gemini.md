@@ -17,16 +17,22 @@ This project was designed and implemented by **Gemini** to create a playful, acc
 
 During the planning and design phase, the following features were specifically implemented to make the game operable and engaging for a 5-year-old child:
 
-1.  **Friction-Free Interaction (Click-to-Place)**:
+1.  **Interactive Tutorial System ("Learn First!")**:
+    *   To explain the mathematical concepts before starting a challenge, the child can open the **Learning Center**.
+    *   This screen visualizes the concepts using a step-by-step auto-playing demonstration:
+        *   **Climbing Up (Ascending)**: The mascot steps up stairs from 1 to 5, as each number appears and the voice synthesizer speaks the number out loud.
+        *   **Sliding Down (Descending)**: The mascot slides down from 5 to 1, demonstrating descending order.
+    *   This gives a multisensory understanding (visual mascot movement + step heights + voice counting) of the concepts before testing them.
+2.  **Friction-Free Interaction (Click-to-Place)**:
     *   Young children often struggle with dragging elements using a laptop trackpad. 
     *   We replaced drag-and-drop with a simple **tap/click gesture**. When a number bubble is clicked, it automatically flies into its correct position.
-2.  **Voice Narration (Text-to-Speech)**:
+3.  **Voice Narration (Text-to-Speech)**:
     *   Since Senior KG children are still learning to read, the game features spoken instructions.
     *   Using the browser's native **Web Speech API**, the game reads out level instructions (e.g. *"Help the monkey climb up! Click the smallest number first!"*) and interactive prompts.
-3.  **Positive Reinforcement & Visual Scaffold**:
+4.  **Positive Reinforcement & Visual Scaffold**:
     *   No harsh buzzers or "Game Over" states. Incorrect answers prompt a gentle wobble animation and a spoken clue (e.g. *"Oops! Try looking for the smallest number, which is 3."*).
     *   Correct answers reward the child with mascot hops, sound chimes, and a confetti shower upon level completion.
-4.  **Zero-Asset Offline Capability**:
+5.  **Zero-Asset Offline Capability**:
     *   Audio sounds (pops, dings, victory arpeggios) are generated procedurally in code using the **Web Audio API** oscillator waves.
     *   Visual icons use colorful SVG and modern CSS emojis (🐵, 🐸, 🐼, 🛝, 🪜).
     *   This ensures the application loads instantly and runs 100% offline, anywhere.

@@ -20,9 +20,10 @@ Since this is built with standard web technologies (HTML, CSS, and Vanilla JavaS
 
 ## 🎮 Game Features & How to Play
 
-*   **Two Fun Modes**: 
-    *   **🪜 Climb Up (Ascending)**: Place numbers from smallest to biggest to help the mascot climb up the stairs.
-    *   **🛝 Slide Down (Descending)**: Place numbers from biggest to smallest to help the mascot slide down.
+*   **📖 Learn First (Tutorial)**: An interactive learning section demonstrating ascending (numbers going up from 1 to 5) and descending (numbers sliding down from 5 to 1) with animations and voiceover counting.
+*   **Two Play Modes**: 
+    *   **🪜 Climb Up (Ascending)**: Arrange numbers from smallest to biggest to help the mascot climb up the stairs.
+    *   **🛝 Slide Down (Descending)**: Arrange numbers from biggest to smallest to help the mascot slide down.
 *   **Structured Levels**:
     *   **Level 1**: Numbers **1 to 10** (3 items) - Simple starting block.
     *   **Level 2**: Numbers **11 to 20** (4 items).

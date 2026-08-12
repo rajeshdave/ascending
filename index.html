@@ -27,13 +27,55 @@
                     <button id="btn-ascending" class="btn btn-green">
                         <span class="btn-icon">🪜</span>
                         <span class="btn-text">Climb Up!</span>
-                        <span class="btn-subtext">(Ascending Numbers)</span>
+                        <span class="btn-subtext">(Ascending)</span>
+                    </button>
+                    <button id="btn-tutorial" class="btn btn-orange">
+                        <span class="btn-icon">📖</span>
+                        <span class="btn-text">Learn First!</span>
+                        <span class="btn-subtext">(How to Play)</span>
                     </button>
                     <button id="btn-descending" class="btn btn-blue">
                         <span class="btn-icon">🛝</span>
                         <span class="btn-text">Slide Down!</span>
-                        <span class="btn-subtext">(Descending Numbers)</span>
+                        <span class="btn-subtext">(Descending)</span>
                     </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TUTORIAL SCREEN ================= -->
+        <section id="tutorial-screen" class="screen">
+            <!-- Header HUD -->
+            <header class="hud-header">
+                <button id="btn-tutorial-home" class="hud-btn">🏠 Home</button>
+                <div class="hud-label">📖 Learn First!</div>
+                <div class="hud-right">
+                    <button id="btn-tutorial-mute" class="hud-btn">🔊 Audio</button>
+                </div>
+            </header>
+
+            <div class="game-area">
+                <!-- Learning Mode Selector -->
+                <div class="tutorial-tabs">
+                    <button id="btn-tut-ascending" class="tut-tab active">🪜 Climbing Up (Ascending)</button>
+                    <button id="btn-tut-descending" class="tut-tab">🛝 Sliding Down (Descending)</button>
+                </div>
+
+                <!-- Explanation Box -->
+                <div class="instruction-box">
+                    <p id="tutorial-text">Ascending means numbers go UP from smallest to biggest!</p>
+                </div>
+
+                <!-- Visual representation of ladder or slide for tutorial -->
+                <div id="tutorial-track" class="track-ascending">
+                    <!-- Tutorial steps will be dynamically placed here -->
+                    <div id="tutorial-mascot" class="mascot">🐵</div>
+                </div>
+
+                <!-- Action controls -->
+                <div class="tutorial-controls">
+                    <button id="btn-play-tutorial" class="nav-btn btn-green">▶️ Watch Tutorial</button>
+                    <button id="btn-tut-play-game" class="nav-btn btn-orange">🎮 Start Game!</button>
                 </div>
             </div>
         </section>
