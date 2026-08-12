@@ -762,28 +762,32 @@ body {
     }
     
     .mode-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 0.5rem;
         margin-top: 0.4rem;
-    }
-    
-    #btn-tutorial {
-        grid-column: span 2;
+        width: 100%;
     }
     
     .btn {
-        padding: 0.6rem 0.8rem;
-        font-size: 1.1rem;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        gap: 0.6rem;
         border-radius: 12px;
     }
     
     .btn-icon {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
+    }
+    
+    .btn-text {
+        font-size: 1.15rem;
     }
     
     .btn-subtext {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
     
     .version-tag {
