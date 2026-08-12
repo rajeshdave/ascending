@@ -61,3 +61,44 @@ To build confidence step-by-step, the game utilizes a modular level progression:
 | **Level 3** | 1 to 30 | 4 cards | Mixed single & double digits |
 | **Level 4** | 31 to 60 | 5 cards | Larger numerical comparisons |
 | **Level 5** | 1 to 100 | 5 cards | Challenge Mode (random assortment) |
+
+---
+
+## 🚀 Hosting & Deployment (GitHub Pages)
+
+The project is configured for hosting on **GitHub Pages**, which provides free web hosting for public repositories:
+
+*   **Free Plan Availability**: GitHub Pages is free for public repositories on standard plans.
+*   **Generous Soft Limits**:
+    *   **Bandwidth**: 100 GB per month (sufficient for ~1.6 million plays of this ~60 KB game).
+    *   **Storage**: 1 GB maximum site size (project is under 100 KB).
+    *   **Builds**: 10 builds per hour (triggered on pushes).
+*   **Configuration**: Turned on in repository Settings -> Pages, pulling from the `/ (root)` of the `main` branch.
+
+---
+
+## 🔄 Versioning & Mobile Cache-Busting
+
+Mobile browsers (like iOS Safari and Android Chrome) use aggressive caching of CSS and JS files to improve speed. When updates are pushed to GitHub Pages, mobile users might continue to see old layout issues unless cache-busting is used.
+
+### Cache-Busting Technique
+To ensure mobile devices download the fresh styles and scripts immediately, we append a version query parameter (`?v=X.Y.Z`) to the asset links in `index.html`:
+```html
+<link rel="stylesheet" href="styles.css?v=1.2.1">
+<script src="game.js?v=1.2.1"></script>
+```
+
+### Development Workflow for Updates
+Whenever you modify CSS (`styles.css`) or JS (`game.js`):
+1.  Open `index.html`.
+2.  Increment the version number (e.g. from `1.2.1` to `1.2.2`) in three places:
+    *   The stylesheet query: `styles.css?v=1.2.2`
+    *   The lobby footer indicator: `<div class="version-tag">v1.2.2</div>`
+    *   The script query: `game.js?v=1.2.2`
+3.  Commit and push the changes:
+    ```bash
+    git add index.html styles.css game.js
+    git commit -m "Bump version to v1.2.2 with layout updates"
+    git push origin main
+    ```
+4.  Mobile users will instantly download the new assets once the page is reloaded. The lobby screen version tag can be used to quickly verify they are running the latest code.

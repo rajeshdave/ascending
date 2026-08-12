@@ -37,3 +37,27 @@ Since this is built with standard web technologies (HTML, CSS, and Vanilla JavaS
     *   **Programmatic Audio Effects**: Satisfying bubble-pops, chimes, and victory fanfares generated in real-time.
     *   **Confetti Celebration**: Responsive confetti shower upon completing a level!
     *   **Easy Navigation**: Big buttons to select levels, replay levels, or go back.
+
+---
+
+## 🌐 Deploying to GitHub Pages
+
+You can host this game on **GitHub Pages** for free:
+1.  Go to repository **Settings** -> **Pages**.
+2.  Set **Source** to "Deploy from a branch".
+3.  Set **Branch** to `main` and folder to `/ (root)`.
+4.  Click **Save**.
+5.  Your site will be live at `https://<username>.github.io/<repository-name>/`.
+
+---
+
+## 🔄 Mobile Cache-Busting for Code Updates
+
+Mobile browsers cache stylesheet and script files aggressively. If you modify `styles.css` or `game.js`, you must increment the version suffix (cache-buster parameter) inside `index.html` to force mobile devices to download the updates immediately:
+
+1.  Open `index.html`.
+2.  Change the version number (e.g. from `1.2.1` to `1.2.2`) in these three spots:
+    *   `<link rel="stylesheet" href="styles.css?v=1.2.2">` (Line 11)
+    *   `<div class="version-tag">v1.2.2</div>` (Line 43)
+    *   `<script src="game.js?v=1.2.2"></script>` (Line 159)
+3.  Commit and push your changes to GitHub to refresh the live deployment.
