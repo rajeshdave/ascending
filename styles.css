@@ -58,6 +58,7 @@ body {
     width: 100%;
     max-width: 1024px;
     height: 100vh;
+    height: 100dvh;
     max-height: 768px;
     background: var(--theme-sky);
     position: relative;
@@ -734,49 +735,60 @@ body {
 @media (max-width: 600px) {
     /* Lobby adjustments */
     #lobby-screen {
-        padding: 1rem;
+        padding: 0.8rem;
     }
     
     .lobby-content {
-        gap: 0.8rem;
+        gap: 0.4rem;
         justify-content: center;
         height: 100%;
     }
     
     .game-title {
-        font-size: 2.2rem;
-        margin-top: 0.5rem;
+        font-size: 1.8rem;
+        margin-top: 0.2rem;
     }
     
     .game-subtitle {
-        font-size: 1.05rem;
+        font-size: 0.9rem;
     }
     
     .mascot-container {
-        height: 100px;
+        height: 70px;
     }
     
     .mascot.large-mascot {
-        font-size: 5rem;
+        font-size: 3.5rem;
     }
     
     .mode-buttons {
-        gap: 0.8rem;
-        margin-top: 0.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.4rem;
+    }
+    
+    #btn-tutorial {
+        grid-column: span 2;
     }
     
     .btn {
-        padding: 0.8rem 1rem;
-        font-size: 1.25rem;
-        border-radius: 16px;
+        padding: 0.6rem 0.8rem;
+        font-size: 1.1rem;
+        border-radius: 12px;
     }
     
     .btn-icon {
-        font-size: 2rem;
+        font-size: 1.6rem;
     }
     
     .btn-subtext {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+    }
+    
+    .version-tag {
+        margin-top: 0.4rem;
+        font-size: 0.75rem;
     }
     
     /* Play Board adjustments */
