@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎈 Number Climber - Ascending & Descending Game</title>
+    <!-- Google Fonts for a rounded, child-friendly look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        
+        <!-- ================= LOBBY SCREEN ================= -->
+        <section id="lobby-screen" class="screen active">
+            <div class="lobby-content">
+                <h1 class="game-title">🎈 Number Climber 🎈</h1>
+                <p class="game-subtitle">Help our friends climb up and slide down!</p>
+                
+                <div class="mascot-container">
+                    <span class="mascot large-mascot float-animation">🐵</span>
+                </div>
+
+                <div class="mode-buttons">
+                    <button id="btn-ascending" class="btn btn-green">
+                        <span class="btn-icon">🪜</span>
+                        <span class="btn-text">Climb Up!</span>
+                        <span class="btn-subtext">(Ascending Numbers)</span>
+                    </button>
+                    <button id="btn-descending" class="btn btn-blue">
+                        <span class="btn-icon">🛝</span>
+                        <span class="btn-text">Slide Down!</span>
+                        <span class="btn-subtext">(Descending Numbers)</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PLAY SCREEN ================= -->
+        <section id="play-screen" class="screen">
+            <!-- Header HUD -->
+            <header class="hud-header">
+                <button id="btn-home" class="hud-btn" title="Go Home">🏠 Home</button>
+                
+                <!-- Level Selection Bar -->
+                <div class="level-selector">
+                    <span class="hud-label">Level:</span>
+                    <div class="level-buttons">
+                        <button class="level-btn active" data-level="1">1</button>
+                        <button class="level-btn" data-level="2">2</button>
+                        <button class="level-btn" data-level="3">3</button>
+                        <button class="level-btn" data-level="4">4</button>
+                        <button class="level-btn" data-level="5">5</button>
+                    </div>
+                </div>
+
+                <!-- Utilities (Mute, etc.) -->
+                <div class="hud-right">
+                    <button id="btn-mute" class="hud-btn" title="Toggle Sound">🔊 Audio</button>
+                </div>
+            </header>
+
+            <div class="game-area">
+                <!-- Instruction Header -->
+                <div class="instruction-box">
+                    <p id="instruction-text">Arrange the numbers from smallest to largest!</p>
+                </div>
+
+                <!-- The Visual Track (Stairs or Slide) -->
+                <div id="visual-track" class="track-ascending">
+                    <!-- Path steps will be injected dynamically -->
+                    <div id="mascot-avatar" class="mascot">🐵</div>
+                </div>
+
+                <!-- Number bubbles container -->
+                <div class="bubbles-area">
+                    <p class="bubbles-hint">Tap the numbers in order:</p>
+                    <div id="bubbles-container">
+                        <!-- Shuffled numbers will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VICTORY SCREEN ================= -->
+        <section id="victory-screen" class="screen">
+            <div class="victory-content">
+                <canvas id="confetti-canvas"></canvas>
+                <div class="victory-card">
+                    <h2 class="victory-title">🎉 Great Job! 🎉</h2>
+                    <p class="victory-subtitle">You placed all the numbers correctly!</p>
+                    
+                    <div class="victory-mascot-container">
+                        <span class="mascot victory-mascot celebrate-animation">🐵</span>
+                        <div class="star-rating">
+                            <span class="star-icon shine-animation">⭐</span>
+                            <span class="star-icon shine-animation">⭐</span>
+                            <span class="star-icon shine-animation">⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="victory-navigation">
+                        <button id="btn-prev-level" class="nav-btn btn-grey">⬅️ Back</button>
+                        <button id="btn-replay" class="nav-btn btn-orange">🔄 Play Again</button>
+                        <button id="btn-next-level" class="nav-btn btn-green">Next Level ➡️</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Game scripts -->
+    <script src="game.js"></script>
+</body>
+</html>

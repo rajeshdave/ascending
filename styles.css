@@ -1,0 +1,656 @@
+/* ==========================================================================
+   🌈 NUMBER CLIMBER - DESIGN SYSTEM & STYLES
+   ========================================================================== */
+
+/* --- CSS VARIABLES & TOKENS --- */
+:root {
+    /* Color Palette (HSL for natural vibrancy) */
+    --color-pink: hsl(355, 100%, 73%);
+    --color-orange: hsl(28, 100%, 63%);
+    --color-yellow: hsl(48, 100%, 67%);
+    --color-green: hsl(145, 63%, 49%);
+    --color-blue: hsl(198, 93%, 60%);
+    --color-purple: hsl(265, 83%, 68%);
+    --color-cream: hsl(40, 100%, 97%);
+    --color-grey: hsl(210, 15%, 85%);
+    --color-dark: hsl(210, 30%, 25%);
+
+    /* Gradient Themes */
+    --theme-sky: linear-gradient(180deg, hsl(205, 100%, 80%) 0%, hsl(205, 100%, 90%) 60%, hsl(80, 60%, 75%) 100%);
+    --theme-playful: linear-gradient(135deg, hsl(330, 100%, 93%) 0%, hsl(200, 100%, 90%) 100%);
+    --theme-bubble: radial-gradient(circle at 30% 30%, hsl(0, 0%, 100%) 0%, transparent 60%);
+
+    /* Typography & Sizing */
+    --font-primary: 'Fredoka', 'Quicksand', 'Nunito', system-ui, sans-serif;
+    --border-radius-large: 24px;
+    --border-radius-bubble: 50%;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-depth: 0 8px 0px 0px rgba(0, 0, 0, 0.15);
+    --shadow-bubble: inset -6px -6px 12px rgba(0,0,0,0.15), inset 6px 6px 12px rgba(255,255,255,0.8), 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* --- RESET & FOUNDATION --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; /* Prevents text selection on rapid tapping */
+}
+
+body {
+    font-family: var(--font-primary);
+    background: var(--theme-playful);
+    color: var(--color-dark);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 1024px;
+    height: 100vh;
+    max-height: 768px;
+    background: var(--theme-sky);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 1025px) {
+    #game-container {
+        border-radius: var(--border-radius-large);
+        height: 90vh;
+    }
+}
+
+/* --- SCREEN TRANSITIONS --- */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: scale(0.98);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+    z-index: 20;
+}
+
+/* ==========================================================================
+   🏠 SCREEN 1: LOBBY
+   ========================================================================== */
+#lobby-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.lobby-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+.game-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: hsl(355, 85%, 55%);
+    text-shadow: 0 4px 0px white, 0 6px 12px rgba(0, 0, 0, 0.1);
+    animation: bounce 2s infinite alternate ease-in-out;
+}
+
+.game-subtitle {
+    font-size: 1.3rem;
+    color: hsl(210, 30%, 40%);
+    font-weight: 500;
+}
+
+.mascot-container {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mascot {
+    font-size: 5rem;
+    display: inline-block;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.large-mascot {
+    font-size: 7rem;
+}
+
+.mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+@media (min-width: 600px) {
+    .mode-buttons {
+        flex-direction: row;
+    }
+}
+
+/* --- BUTTON SYSTEM --- */
+.btn {
+    flex: 1;
+    border: none;
+    padding: 1.2rem 2rem;
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    color: white;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-depth), 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 0px 0px rgba(0, 0, 0, 0.15), 0 12px 25px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0px 0px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-icon {
+    font-size: 2.5rem;
+}
+
+.btn-subtext {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.btn-green {
+    background-color: var(--color-green);
+}
+.btn-blue {
+    background-color: var(--color-blue);
+}
+.btn-orange {
+    background-color: var(--color-orange);
+}
+.btn-grey {
+    background-color: hsl(210, 15%, 55%);
+}
+
+/* ==========================================================================
+   🎮 SCREEN 2: GAME BOARD & PLAY STATE
+   ========================================================================== */
+
+/* --- HUD HEADER --- */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 30;
+}
+
+.hud-btn {
+    border: none;
+    background: white;
+    color: var(--color-dark);
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+    transition: all 0.1s ease;
+}
+
+.hud-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0px rgba(0,0,0,0.1);
+}
+
+/* Level Selection Buttons */
+.level-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hud-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-dark);
+}
+
+.level-buttons {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.level-btn {
+    border: 2px solid white;
+    background: rgba(255, 255, 255, 0.4);
+    color: var(--color-dark);
+    font-family: var(--font-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.level-btn:hover {
+    background: white;
+}
+
+.level-btn.active {
+    background: var(--color-orange);
+    color: white;
+    border-color: var(--color-orange);
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* --- GAME AREA LAYOUT --- */
+.game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    position: relative;
+    background: transparent;
+}
+
+.instruction-box {
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.7);
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 500px;
+    margin: 0.5rem auto;
+    border: 2px dashed var(--color-blue);
+}
+
+#instruction-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-dark);
+}
+
+/* --- THE VISUAL TRACK (Stairs / Slide) --- */
+#visual-track {
+    flex: 1;
+    position: relative;
+    margin: 1.5rem auto;
+    width: 90%;
+    max-width: 700px;
+    height: 240px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    border: 3px dashed rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: 0 1rem 1rem 1rem;
+}
+
+/* Mascot on Track */
+#mascot-avatar {
+    position: absolute;
+    font-size: 4rem;
+    z-index: 25;
+    bottom: 12px;
+    left: 20px;
+    transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
+
+/* Steps Styling */
+.track-step {
+    flex: 1;
+    margin: 0 0.5rem;
+    background: rgba(255, 255, 255, 0.4);
+    border: 3px solid white;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 1rem;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    position: relative;
+    transition: all 0.5s ease;
+}
+
+/* Correctly placed steps change color */
+.track-step.filled {
+    background: var(--color-green);
+    border-color: var(--color-green);
+    color: white;
+    box-shadow: 0 12px 24px rgba(78, 205, 196, 0.3);
+}
+
+.track-step-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin-top: auto;
+    text-shadow: 2px 2px 0px white;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.track-step.filled .track-step-number {
+    color: white;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+    transform: scale(1.1);
+}
+
+/* Faint level guides */
+.track-step-hint {
+    position: absolute;
+    top: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.4;
+    text-transform: uppercase;
+}
+
+/* --- BUBBLES CHOICE AREA --- */
+.bubbles-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 1.2rem;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+    border-top: 3px solid white;
+}
+
+.bubbles-hint {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: hsl(210, 30%, 40%);
+}
+
+#bubbles-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.2rem;
+    min-height: 80px;
+    align-items: center;
+}
+
+/* Number bubble design */
+.num-bubble {
+    width: 70px;
+    height: 70px;
+    border-radius: var(--border-radius-bubble);
+    border: 3px solid white;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    box-shadow: var(--shadow-bubble);
+    background-color: var(--color-yellow);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.num-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: var(--border-radius-bubble);
+    background: var(--theme-bubble);
+    pointer-events: none;
+}
+
+.num-bubble:hover {
+    transform: scale(1.1) translateY(-5px);
+}
+
+.num-bubble:active {
+    transform: scale(0.9);
+}
+
+/* Custom bubble colors based on index */
+.num-bubble:nth-child(2n) {
+    background-color: var(--color-pink);
+    color: white;
+}
+.num-bubble:nth-child(3n) {
+    background-color: var(--color-blue);
+    color: white;
+}
+.num-bubble:nth-child(4n) {
+    background-color: var(--color-purple);
+    color: white;
+}
+
+/* Shake animation for wrong selection */
+.shake-animation {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Pop scaling animation */
+.pop-out {
+    animation: popOut 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ==========================================================================
+   🎉 SCREEN 3: VICTORY & CELEBRATION
+   ========================================================================== */
+#victory-screen {
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, rgba(255,230,109,0.2) 0%, rgba(161,196,253,0.3) 100%);
+}
+
+#confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.victory-card {
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 0 8px rgba(255, 255, 255, 0.5);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 90%;
+    max-width: 500px;
+    z-index: 20;
+    transform: scale(0.9);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.victory-title {
+    font-size: 2.5rem;
+    color: var(--color-orange);
+    text-shadow: 2px 2px 0px hsl(48, 100%, 80%);
+}
+
+.victory-subtitle {
+    font-size: 1.2rem;
+    color: hsl(210, 20%, 45%);
+}
+
+.victory-mascot-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.victory-mascot {
+    font-size: 6rem;
+}
+
+.star-rating {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.star-icon {
+    font-size: 2.5rem;
+}
+
+.victory-navigation {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.nav-btn {
+    flex: 1;
+    border: none;
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    box-shadow: var(--shadow-depth);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-btn:hover {
+    transform: translateY(-2px);
+}
+
+.nav-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0px rgba(0,0,0,0.15);
+}
+
+/* ==========================================================================
+   ✨ KEYFRAMES & ANIMATIONS
+   ========================================================================== */
+
+/* Bouncing mascot or title */
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-12px); }
+}
+
+/* Hover floating */
+.float-animation {
+    animation: float 3s ease-in-out infinite alternate;
+}
+
+@keyframes float {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(3deg); }
+    100% { transform: translateY(0) rotate(-3deg); }
+}
+
+/* Celebration jump & wiggle */
+.celebrate-animation {
+    animation: celebrate 1s infinite alternate cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes celebrate {
+    0% { transform: translateY(0) scale(1) rotate(0); }
+    50% { transform: translateY(-20px) scale(1.1) rotate(5deg); }
+    100% { transform: translateY(0) scale(1) rotate(-5deg); }
+}
+
+/* Shaker for wrong answers */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+/* Bubble popping out of existence */
+@keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* Victory card popping in */
+@keyframes popIn {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Star glowing shine */
+.shine-animation {
+    animation: shine 1.5s infinite alternate ease-in-out;
+}
+
+.shine-animation:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.shine-animation:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes shine {
+    0% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 2px var(--color-yellow)); }
+    100% { transform: scale(1.25) rotate(15deg); filter: drop-shadow(0 0 10px var(--color-yellow)); }
+}
