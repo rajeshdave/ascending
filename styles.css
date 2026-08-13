@@ -1130,6 +1130,27 @@ body {
     color: var(--color-pink);
 }
 
+.persistence-status-container {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: hsl(210, 20%, 45%);
+    background: rgba(255, 255, 255, 0.4);
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    margin-top: 0.2rem;
+    align-self: flex-start;
+}
+
+.persistence-status-container.persisted {
+    color: hsl(145, 63%, 25%);
+    background: rgba(46, 204, 113, 0.12);
+    border-color: rgba(46, 204, 113, 0.25);
+}
+
 /* Active Chanting UI */
 .chanting-header {
     display: flex;

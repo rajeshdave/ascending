@@ -939,7 +939,81 @@ function syncMuteState() {
 }
 
 // ==========================================================================
-// 📿 NAAM JAP TRACKER LOGIC (NO-DATABASE LOCAL PERSISTENCE)
+// 📦 INDEXEDDB STORAGE WRAPPER (ZERO DEPENDENCY)
+// ==========================================================================
+const DB_NAME = 'NaamJapDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'settings';
+
+const IndexedDBHelper = {
+    db: null,
+    
+    init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            
+            request.onerror = (e) => {
+                console.error("IndexedDB error:", e);
+                reject(e);
+            };
+            
+            request.onsuccess = (e) => {
+                this.db = e.target.result;
+                resolve(this.db);
+            };
+            
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+        });
+    },
+    
+    get(key) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject("Database not initialized");
+                return;
+            }
+            const transaction = this.db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(key);
+            
+            request.onsuccess = (e) => {
+                resolve(e.target.result);
+            };
+            
+            request.onerror = (e) => {
+                reject(e);
+            };
+        });
+    },
+    
+    set(key, value) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject("Database not initialized");
+                return;
+            }
+            const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.put(value, key);
+            
+            request.onsuccess = (e) => {
+                resolve();
+            };
+            
+            request.onerror = (e) => {
+                reject(e);
+            };
+        });
+    }
+};
+
+// ==========================================================================
+// 📿 NAAM JAP TRACKER LOGIC (INDEXEDDB & STORAGE PERSISTENCE API)
 // ==========================================================================
 const NaamJapManager = {
     db: { version: 1, lastUpdated: new Date().toISOString(), profiles: [] },
@@ -947,9 +1021,21 @@ const NaamJapManager = {
     idleTimer: null,
     idleLimit: 30000, // 30 seconds
 
-    init() {
-        // Load data on start
-        this.loadDb();
+    async init() {
+        // Initialize IndexedDB first
+        try {
+            await IndexedDBHelper.init();
+            
+            // Load and migrate data
+            await this.loadDb();
+            
+            // Request and display storage persistence status
+            await this.checkAndRequestPersistence();
+        } catch (e) {
+            console.error("Failed to initialize IndexedDB storage:", e);
+            // Fallback to localStorage
+            this.loadDbFromLocalStorage();
+        }
         
         // Setup initial view
         this.renderProfiles();
@@ -972,25 +1058,100 @@ const NaamJapManager = {
         }
     },
 
-    loadDb() {
-        const stored = localStorage.getItem('ascending_game_naam_jap_db');
-        if (stored) {
-            try {
-                this.db = JSON.parse(stored);
+    async loadDb() {
+        // Try loading from IndexedDB first
+        try {
+            const data = await IndexedDBHelper.get('db_state');
+            if (data) {
+                this.db = data;
                 // Ensure profiles array exists
                 if (!Array.isArray(this.db.profiles)) {
                     this.db.profiles = [];
                 }
+                return;
+            }
+        } catch (e) {
+            console.error("Error reading from IndexedDB", e);
+        }
+
+        // If not found in IndexedDB, check localStorage for migration
+        const stored = localStorage.getItem('ascending_game_naam_jap_db');
+        if (stored) {
+            try {
+                this.db = JSON.parse(stored);
+                if (!Array.isArray(this.db.profiles)) {
+                    this.db.profiles = [];
+                }
+                // Migrate to IndexedDB
+                await IndexedDBHelper.set('db_state', this.db);
+                console.log("Successfully migrated localStorage data to IndexedDB.");
             } catch (e) {
-                console.error("Error loading local storage database", e);
-                this.showStatus("Error loading saved data. Starting fresh.", true);
+                console.error("Error migrating localStorage database", e);
+            }
+        }
+    },
+
+    loadDbFromLocalStorage() {
+        const stored = localStorage.getItem('ascending_game_naam_jap_db');
+        if (stored) {
+            try {
+                this.db = JSON.parse(stored);
+                if (!Array.isArray(this.db.profiles)) {
+                    this.db.profiles = [];
+                }
+            } catch (e) {
+                console.error("Fallback localStorage load error", e);
             }
         }
     },
 
     saveDb() {
         this.db.lastUpdated = new Date().toISOString();
-        localStorage.setItem('ascending_game_naam_jap_db', JSON.stringify(this.db));
+        
+        // Save to IndexedDB (asynchronous write)
+        IndexedDBHelper.set('db_state', this.db).catch(e => {
+            console.error("Error writing to IndexedDB", e);
+        });
+
+        // Also save to localStorage as a redundant double-backup
+        try {
+            localStorage.setItem('ascending_game_naam_jap_db', JSON.stringify(this.db));
+        } catch (e) {
+            console.error("Error writing redundant backup to localStorage", e);
+        }
+    },
+
+    async checkAndRequestPersistence() {
+        let isPersisted = false;
+        
+        // 1. Check if already persisted
+        if (navigator.storage && navigator.storage.persisted) {
+            isPersisted = await navigator.storage.persisted();
+        }
+        
+        // 2. Request persistence if not already granted
+        if (!isPersisted && navigator.storage && navigator.storage.persist) {
+            isPersisted = await navigator.storage.persist();
+        }
+        
+        // 3. Update the UI Status indicator
+        const statusText = document.getElementById('nj-persistence-status');
+        const statusIcon = document.getElementById('nj-persistence-icon');
+        const container = document.querySelector('.persistence-status-container');
+        
+        if (statusText && statusIcon && container) {
+            if (isPersisted) {
+                statusText.innerText = "Permanent (Locked)";
+                statusIcon.innerText = "🔒";
+                container.classList.add('persisted');
+                container.title = "Your database is locked and protected. The browser promises never to clear it automatically.";
+            } else {
+                statusText.innerText = "Temporary";
+                statusIcon.innerText = "🔓";
+                container.classList.remove('persisted');
+                container.title = "Browser storage is in temporary mode. The browser may clear it if disk space runs extremely low.";
+            }
+        }
     },
 
     bindEvents() {
