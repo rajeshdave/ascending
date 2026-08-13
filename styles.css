@@ -1247,6 +1247,44 @@ body {
     color: hsl(210, 30%, 40%);
 }
 
+/* Auto-Save Indicator */
+.save-indicator {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: hsl(145, 63%, 30%);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.65);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-top: -0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255,255,255,0.8);
+    transition: all 0.2s ease;
+}
+
+.save-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: save-pulse 2s infinite ease-in-out;
+    transition: background-color 0.2s ease;
+}
+
+@keyframes save-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.save-dot.saving {
+    background-color: var(--color-orange);
+    animation: none;
+}
+
 /* Settings toggles */
 .chanting-settings {
     display: flex;

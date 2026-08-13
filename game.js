@@ -1229,6 +1229,20 @@ const NaamJapManager = {
         // Update view counts
         this.updateChantingCounts();
 
+        // Visual indicator update to reassure background saving
+        const saveDot = document.querySelector('.save-dot');
+        const saveText = document.getElementById('nj-save-status-text');
+        if (saveDot && saveText) {
+            saveDot.classList.add('saving');
+            saveText.innerText = 'Saving...';
+            
+            if (this._saveTimeout) clearTimeout(this._saveTimeout);
+            this._saveTimeout = setTimeout(() => {
+                saveDot.classList.remove('saving');
+                saveText.innerText = 'Auto-Saved in Browser';
+            }, 300);
+        }
+
         // Play tap audio
         const chkSound = document.getElementById('nj-chk-sound');
         if (chkSound && chkSound.checked) {
