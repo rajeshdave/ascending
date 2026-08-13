@@ -39,6 +39,11 @@
                         <span class="btn-text">Slide Down!</span>
                         <span class="btn-subtext">(Descending)</span>
                     </button>
+                    <button id="btn-naam-jap" class="btn btn-purple">
+                        <span class="btn-icon">📿</span>
+                        <span class="btn-text">Naam Jap</span>
+                        <span class="btn-subtext">(Chant Tracker)</span>
+                    </button>
                 </div>
                 <div class="version-tag">v1.2.1</div>
             </div>
@@ -148,6 +153,113 @@
                         <button id="btn-prev-level" class="nav-btn btn-grey">⬅️ Back</button>
                         <button id="btn-replay" class="nav-btn btn-orange">🔄 Play Again</button>
                         <button id="btn-next-level" class="nav-btn btn-green">Next Level ➡️</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= NAAM JAP SCREEN ================= -->
+        <section id="naam-jap-screen" class="screen">
+            <!-- Header HUD -->
+            <header class="hud-header">
+                <button id="btn-naam-jap-home" class="hud-btn" title="Go Home">🏠 Home</button>
+                <div class="hud-label">📿 Naam Jap</div>
+                <div class="hud-right">
+                    <button id="btn-naam-jap-mute" class="hud-btn" title="Toggle Sound">🔊 Audio</button>
+                </div>
+            </header>
+
+            <div class="naam-jap-container">
+                <!-- 1. DASHBOARD VIEW (when no profile is active) -->
+                <div id="nj-dashboard-view" class="nj-view active">
+                    <div class="nj-card profile-creation-card">
+                        <h3>✨ Create Profile</h3>
+                        <div class="profile-form">
+                            <select id="nj-avatar-select" class="nj-input-select">
+                                <option value="🧘">🧘 Meditating</option>
+                                <option value="📿">📿 Beads</option>
+                                <option value="🌸">🌸 Lotus</option>
+                                <option value="🌞">🌞 Sun</option>
+                                <option value="🕉️">🕉️ Om</option>
+                                <option value="🕯️">🕯️ Candle</option>
+                                <option value="🌳">🌳 Tree</option>
+                            </select>
+                            <input type="text" id="nj-name-input" class="nj-input-text" placeholder="Who is doing Naam Jap?" maxlength="15">
+                            <button id="btn-nj-add-profile" class="hud-btn btn-green-inline">➕ Add</button>
+                        </div>
+                    </div>
+
+                    <div class="nj-section-title">🕉️ Active Profiles</div>
+                    <div id="nj-profiles-list" class="nj-profiles-grid">
+                        <!-- Profiles dynamically loaded here -->
+                    </div>
+
+                    <div class="nj-card backup-card">
+                        <h3>💾 Backup & Restore</h3>
+                        <p class="backup-help-text">Your counts automatically save in this browser. To keep them safe across app updates or other devices, export a backup file below.</p>
+                        <div class="backup-actions">
+                            <button id="btn-nj-export" class="hud-btn btn-orange-inline">📤 Save Backup File</button>
+                            <button id="btn-nj-import-trigger" class="hud-btn btn-blue-inline">📥 Import Backup File</button>
+                            <input type="file" id="nj-import-file-input" accept=".json" style="display: none;">
+                        </div>
+                        <div id="nj-backup-status" class="backup-status"></div>
+                    </div>
+                </div>
+
+                <!-- 2. ACTIVE CHANTING VIEW (when a profile is selected) -->
+                <div id="nj-chanting-view" class="nj-view">
+                    <div class="chanting-header">
+                        <button id="btn-nj-back-to-profiles" class="hud-btn">⬅️ Profiles</button>
+                        <div id="nj-active-profile-name" class="active-profile-title">🧘 Rajesh</div>
+                    </div>
+
+                    <div class="chanting-main">
+                        <!-- Large Tap Area -->
+                        <div id="nj-tap-zone" class="tap-zone pulse-idle">
+                            <div class="tap-inner">
+                                <span id="nj-tap-emoji" class="tap-emoji">📿</span>
+                                <span class="tap-hint-text">Tap anywhere here to chant</span>
+                            </div>
+                        </div>
+
+                        <!-- Count display -->
+                        <div class="count-display-container">
+                            <div class="count-item">
+                                <span class="count-num" id="nj-today-count">0</span>
+                                <span class="count-label">Today's Count</span>
+                            </div>
+                            <div class="count-item mini-count">
+                                <span class="count-num" id="nj-lifetime-count">0</span>
+                                <span class="count-label">Lifetime Count</span>
+                            </div>
+                        </div>
+
+                        <!-- Settings toggles -->
+                        <div class="chanting-settings">
+                            <label class="setting-toggle">
+                                <input type="checkbox" id="nj-chk-sound">
+                                <span class="toggle-label">🔊 Tap Sound</span>
+                            </label>
+                            <label class="setting-toggle">
+                                <input type="checkbox" id="nj-chk-vibrate" checked>
+                                <span class="toggle-label">📳 Vibration</span>
+                            </label>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="chanting-controls">
+                            <button id="btn-nj-adjust-count" class="hud-btn">✏️ Adjust</button>
+                            <button id="btn-nj-reset-today" class="hud-btn btn-danger-inline">⚠️ Reset Today</button>
+                            <button id="btn-nj-save-now" class="hud-btn btn-green-inline">💾 Save & Backup</button>
+                        </div>
+
+                        <!-- Weekly History -->
+                        <div class="history-container">
+                            <h4>📊 Last 7 Days</h4>
+                            <div id="nj-history-chart" class="history-chart">
+                                <!-- Bars will be dynamically injected here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

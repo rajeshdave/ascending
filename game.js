@@ -37,6 +37,7 @@ const screens = {
     play: document.getElementById('play-screen'),
     victory: document.getElementById('victory-screen'),
     tutorial: document.getElementById('tutorial-screen'),
+    naamJap: document.getElementById('naam-jap-screen'),
 };
 
 const buttons = {
@@ -55,6 +56,10 @@ const buttons = {
     tutDesc: document.getElementById('btn-tut-descending'),
     tutPlay: document.getElementById('btn-play-tutorial'),
     tutPlayGame: document.getElementById('btn-tut-play-game'),
+    // Naam Jap Buttons
+    naamJap: document.getElementById('btn-naam-jap'),
+    naamJapHome: document.getElementById('btn-naam-jap-home'),
+    naamJapMute: document.getElementById('btn-naam-jap-mute'),
 };
 
 const elements = {
@@ -165,10 +170,56 @@ function playSynthSound(type) {
 
                 gain.gain.setValueAtTime(0, now);
                 gain.gain.linearRampToValueAtTime(0.15, now + idx * 0.07 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.07 + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.07 + 0.35);
 
                 osc.start(now + idx * 0.07);
                 osc.stop(now + idx * 0.07 + 0.35);
+            });
+            break;
+        }
+        case 'bead': {
+            // Short wooden bead click
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
+            
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            
+            osc.start(now);
+            osc.stop(now + 0.05);
+            break;
+        }
+        case 'bowl': {
+            // Tibetan singing bowl chime (rich multi-frequency resonant sound)
+            const frequencies = [180, 271, 362, 545, 728];
+            const duration = 4.0;
+            
+            frequencies.forEach((freq, index) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                
+                if (index > 0) {
+                    osc.detune.setValueAtTime((Math.random() - 0.5) * 15, now);
+                }
+                
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.12 / frequencies.length, now + 0.25);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration + 0.5);
             });
             break;
         }
@@ -785,18 +836,8 @@ elements.levelBtns.forEach(btn => {
 // 4. Mute toggle
 buttons.mute.addEventListener('click', () => {
     state.isMuted = !state.isMuted;
-    if (state.isMuted) {
-        buttons.mute.innerText = '🔇 Mute';
-        buttons.mute.style.opacity = '0.7';
-        buttons.tutMute.innerText = '🔇 Mute';
-        buttons.tutMute.style.opacity = '0.7';
-        window.speechSynthesis.cancel();
-    } else {
-        buttons.mute.innerText = '🔊 Audio';
-        buttons.mute.style.opacity = '1';
-        buttons.tutMute.innerText = '🔊 Audio';
-        buttons.tutMute.style.opacity = '1';
-        initAudio();
+    syncMuteState();
+    if (!state.isMuted) {
         speakText("Sound is back on!");
     }
 });
@@ -836,18 +877,8 @@ buttons.tutHome.addEventListener('click', () => {
 
 buttons.tutMute.addEventListener('click', () => {
     state.isMuted = !state.isMuted;
-    if (state.isMuted) {
-        buttons.tutMute.innerText = '🔇 Mute';
-        buttons.tutMute.style.opacity = '0.7';
-        buttons.mute.innerText = '🔇 Mute';
-        buttons.mute.style.opacity = '0.7';
-        window.speechSynthesis.cancel();
-    } else {
-        buttons.tutMute.innerText = '🔊 Audio';
-        buttons.tutMute.style.opacity = '1';
-        buttons.mute.innerText = '🔊 Audio';
-        buttons.mute.style.opacity = '1';
-        initAudio();
+    syncMuteState();
+    if (!state.isMuted) {
         speakText("Sound is back on!");
     }
 });
@@ -879,3 +910,600 @@ buttons.tutPlayGame.addEventListener('click', () => {
 if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {};
 }
+
+// ==========================================================================
+// 🔊 MUTE STATE SYNCHRONIZATION HELPERS
+// ==========================================================================
+function syncMuteState() {
+    const text = state.isMuted ? '🔇 Mute' : '🔊 Audio';
+    const opacity = state.isMuted ? '0.7' : '1';
+    
+    if (buttons.mute) {
+        buttons.mute.innerText = text;
+        buttons.mute.style.opacity = opacity;
+    }
+    if (buttons.tutMute) {
+        buttons.tutMute.innerText = text;
+        buttons.tutMute.style.opacity = opacity;
+    }
+    if (buttons.naamJapMute) {
+        buttons.naamJapMute.innerText = text;
+        buttons.naamJapMute.style.opacity = opacity;
+    }
+    
+    if (state.isMuted) {
+        window.speechSynthesis.cancel();
+    } else {
+        initAudio();
+    }
+}
+
+// ==========================================================================
+// 📿 NAAM JAP TRACKER LOGIC (NO-DATABASE LOCAL PERSISTENCE)
+// ==========================================================================
+const NaamJapManager = {
+    db: { version: 1, lastUpdated: new Date().toISOString(), profiles: [] },
+    activeProfile: null,
+    idleTimer: null,
+    idleLimit: 30000, // 30 seconds
+
+    init() {
+        // Load data on start
+        this.loadDb();
+        
+        // Setup initial view
+        this.renderProfiles();
+        
+        // Bind event listeners
+        this.bindEvents();
+    },
+
+    loadDb() {
+        const stored = localStorage.getItem('ascending_game_naam_jap_db');
+        if (stored) {
+            try {
+                this.db = JSON.parse(stored);
+                // Ensure profiles array exists
+                if (!Array.isArray(this.db.profiles)) {
+                    this.db.profiles = [];
+                }
+            } catch (e) {
+                console.error("Error loading local storage database", e);
+                this.showStatus("Error loading saved data. Starting fresh.", true);
+            }
+        }
+    },
+
+    saveDb() {
+        this.db.lastUpdated = new Date().toISOString();
+        localStorage.setItem('ascending_game_naam_jap_db', JSON.stringify(this.db));
+    },
+
+    bindEvents() {
+        const self = this;
+
+        // Lobby tab navigation
+        buttons.naamJap.addEventListener('click', () => {
+            initAudio();
+            playSynthSound('click');
+            showScreen('naamJap');
+            self.initView();
+        });
+
+        // Home button
+        buttons.naamJapHome.addEventListener('click', () => {
+            playSynthSound('click');
+            self.exitChanting();
+            showScreen('lobby');
+        });
+
+        // Mute button
+        buttons.naamJapMute.addEventListener('click', () => {
+            state.isMuted = !state.isMuted;
+            syncMuteState();
+            if (!state.isMuted) {
+                speakText("Sound is back on!");
+            }
+        });
+
+        // Add Profile
+        const btnAddProfile = document.getElementById('btn-nj-add-profile');
+        if (btnAddProfile) {
+            btnAddProfile.addEventListener('click', () => {
+                const nameInput = document.getElementById('nj-name-input');
+                const avatarSelect = document.getElementById('nj-avatar-select');
+                const name = nameInput.value.trim();
+                const avatar = avatarSelect.value;
+
+                if (!name) {
+                    alert("Please enter a name for the profile.");
+                    return;
+                }
+
+                self.addProfile(name, avatar);
+                nameInput.value = ''; // clear input
+                playSynthSound('click');
+            });
+        }
+
+        // Back to Profiles List
+        const btnBackToProfiles = document.getElementById('btn-nj-back-to-profiles');
+        if (btnBackToProfiles) {
+            btnBackToProfiles.addEventListener('click', () => {
+                playSynthSound('click');
+                self.exitChanting();
+            });
+        }
+
+        // Giant Chant Tapping Zone
+        const tapZone = document.getElementById('nj-tap-zone');
+        if (tapZone) {
+            // Touchstart for faster response on mobile, click for desktop fallback
+            const handleChantTap = (e) => {
+                e.preventDefault();
+                self.chantTap();
+            };
+            tapZone.addEventListener('touchstart', handleChantTap, { passive: false });
+            tapZone.addEventListener('mousedown', (e) => {
+                // If it's a touch device, touchstart will fire and handle it, ignore mouse down to avoid double tap counts
+                if ('ontouchstart' in window) return;
+                self.chantTap();
+            });
+        }
+
+        // Adjust count
+        const btnAdjust = document.getElementById('btn-nj-adjust-count');
+        if (btnAdjust) {
+            btnAdjust.addEventListener('click', () => {
+                playSynthSound('click');
+                self.adjustCount();
+            });
+        }
+
+        // Reset today's count
+        const btnReset = document.getElementById('btn-nj-reset-today');
+        if (btnReset) {
+            btnReset.addEventListener('click', () => {
+                playSynthSound('click');
+                self.resetToday();
+            });
+        }
+
+        // Save & Backup (Merges database & triggers file download)
+        const btnSaveNow = document.getElementById('btn-nj-save-now');
+        if (btnSaveNow) {
+            btnSaveNow.addEventListener('click', () => {
+                self.exportBackup();
+            });
+        }
+
+        const btnExport = document.getElementById('btn-nj-export');
+        if (btnExport) {
+            btnExport.addEventListener('click', () => {
+                self.exportBackup();
+            });
+        }
+
+        // Import backup (Triggering the file picker)
+        const btnImportTrigger = document.getElementById('btn-nj-import-trigger');
+        const fileInput = document.getElementById('nj-import-file-input');
+        if (btnImportTrigger && fileInput) {
+            btnImportTrigger.addEventListener('click', () => {
+                playSynthSound('click');
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    self.importBackup(file);
+                }
+                fileInput.value = ''; // reset so same file can be selected again
+            });
+        }
+    },
+
+    initView() {
+        this.activeProfile = null;
+        document.getElementById('nj-dashboard-view').classList.add('active');
+        document.getElementById('nj-chanting-view').classList.remove('active');
+        this.renderProfiles();
+    },
+
+    renderProfiles() {
+        const grid = document.getElementById('nj-profiles-list');
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        const todayStr = this.getTodayString();
+
+        if (this.db.profiles.length === 0) {
+            grid.innerHTML = `<div class="nj-card" style="grid-column: 1/-1; text-align: center; color: hsl(210, 15%, 45%); padding: 2rem;">
+                No profiles created yet. Create a profile above or import your backup file to start!
+            </div>`;
+            return;
+        }
+
+        this.db.profiles.forEach(profile => {
+            const todayCount = (profile.history && profile.history[todayStr]) || 0;
+            
+            const card = document.createElement('div');
+            card.className = 'profile-card';
+            card.innerHTML = `
+                <button class="profile-delete-btn" title="Delete Profile">❌</button>
+                <div class="profile-avatar">${profile.avatar || '🧘'}</div>
+                <div class="profile-name">${this.escapeHTML(profile.name)}</div>
+                <div class="profile-count-badge">Today: ${todayCount}</div>
+            `;
+
+            // Card click goes to chanting view
+            card.addEventListener('click', (e) => {
+                // If clicked delete button, skip selecting profile
+                if (e.target.classList.contains('profile-delete-btn')) {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to delete profile "${profile.name}" and all their chanting history? This cannot be undone.`)) {
+                        this.deleteProfile(profile.id);
+                    }
+                    return;
+                }
+                this.selectProfile(profile.id);
+            });
+
+            grid.appendChild(card);
+        });
+    },
+
+    addProfile(name, avatar) {
+        const newProfile = {
+            id: 'profile_' + Date.now() + Math.random().toString(36).substr(2, 5),
+            name: name,
+            avatar: avatar,
+            createdAt: new Date().toISOString(),
+            history: {}
+        };
+        
+        this.db.profiles.push(newProfile);
+        this.saveDb();
+        this.renderProfiles();
+        this.showStatus(`Profile "${name}" created!`, false);
+    },
+
+    deleteProfile(profileId) {
+        this.db.profiles = this.db.profiles.filter(p => p.id !== profileId);
+        this.saveDb();
+        this.renderProfiles();
+        playSynthSound('wrong');
+        this.showStatus("Profile deleted", false);
+    },
+
+    selectProfile(profileId) {
+        const profile = this.db.profiles.find(p => p.id === profileId);
+        if (!profile) return;
+
+        this.activeProfile = profile;
+        
+        // Update Title & Views
+        document.getElementById('nj-active-profile-name').innerText = `${profile.avatar || '🧘'} ${profile.name}`;
+        document.getElementById('nj-dashboard-view').classList.remove('active');
+        document.getElementById('nj-chanting-view').classList.add('active');
+
+        // Update counts
+        this.updateChantingCounts();
+
+        // Render chart
+        this.renderHistoryChart(profile);
+
+        // Reset and start idle timer
+        this.resetIdleTimer();
+        
+        playSynthSound('click');
+    },
+
+    exitChanting() {
+        this.activeProfile = null;
+        this.stopIdleTimer();
+        document.getElementById('nj-dashboard-view').classList.add('active');
+        document.getElementById('nj-chanting-view').classList.remove('active');
+        this.renderProfiles();
+    },
+
+    chantTap() {
+        if (!this.activeProfile) return;
+
+        const profile = this.activeProfile;
+        const todayStr = this.getTodayString();
+
+        if (!profile.history) profile.history = {};
+        profile.history[todayStr] = (profile.history[todayStr] || 0) + 1;
+
+        // Auto save back to local storage
+        this.saveDb();
+
+        // Update view counts
+        this.updateChantingCounts();
+
+        // Play tap audio
+        const chkSound = document.getElementById('nj-chk-sound');
+        if (chkSound && chkSound.checked) {
+            playSynthSound('bead');
+        }
+
+        // Tap vibration haptics
+        const chkVibrate = document.getElementById('nj-chk-vibrate');
+        if (chkVibrate && chkVibrate.checked && navigator.vibrate) {
+            navigator.vibrate(20);
+        }
+
+        // Visual feedback animation on the tap zone
+        const tapZone = document.getElementById('nj-tap-zone');
+        if (tapZone) {
+            tapZone.style.transform = 'scale(0.92)';
+            setTimeout(() => {
+                tapZone.style.transform = '';
+            }, 80);
+        }
+
+        // Reset the idle timer to prevent Tibetan bowl from sounding
+        this.resetIdleTimer();
+    },
+
+    updateChantingCounts() {
+        if (!this.activeProfile) return;
+        const profile = this.activeProfile;
+        const todayStr = this.getTodayString();
+
+        const todayCount = (profile.history && profile.history[todayStr]) || 0;
+        let lifetimeCount = 0;
+        if (profile.history) {
+            Object.values(profile.history).forEach(val => {
+                lifetimeCount += val;
+            });
+        }
+
+        document.getElementById('nj-today-count').innerText = todayCount;
+        document.getElementById('nj-lifetime-count').innerText = lifetimeCount;
+    },
+
+    adjustCount() {
+        if (!this.activeProfile) return;
+        
+        const profile = this.activeProfile;
+        const todayStr = this.getTodayString();
+        const currentToday = (profile.history && profile.history[todayStr]) || 0;
+
+        const val = prompt(`Adjust today's Naam Jap count for ${profile.name}:`, currentToday);
+        if (val === null) return; // user cancelled
+
+        const parsed = parseInt(val, 10);
+        if (isNaN(parsed) || parsed < 0) {
+            alert("Please enter a valid positive number.");
+            return;
+        }
+
+        if (!profile.history) profile.history = {};
+        profile.history[todayStr] = parsed;
+        
+        this.saveDb();
+        this.updateChantingCounts();
+        this.renderHistoryChart(profile);
+        this.resetIdleTimer();
+        this.showStatus("Count updated!", false);
+    },
+
+    resetToday() {
+        if (!this.activeProfile) return;
+
+        const profile = this.activeProfile;
+        if (confirm(`Reset today's count for ${profile.name} to 0? (Lifetime count will adjust accordingly)`)) {
+            const todayStr = this.getTodayString();
+            if (!profile.history) profile.history = {};
+            profile.history[todayStr] = 0;
+            
+            this.saveDb();
+            this.updateChantingCounts();
+            this.renderHistoryChart(profile);
+            this.resetIdleTimer();
+            this.showStatus("Today's count reset", false);
+        }
+    },
+
+    resetIdleTimer() {
+        this.stopIdleTimer();
+        // Set new idle timeout for Tibetan bowl chime (30 seconds)
+        this.idleTimer = setTimeout(() => {
+            // Play Tibet singing bowl chime if not muted
+            playSynthSound('bowl');
+            // Give visual feedback on the emoji (sparkles)
+            const emoji = document.getElementById('nj-tap-emoji');
+            if (emoji) {
+                emoji.innerText = '✨';
+                setTimeout(() => {
+                    const activeEmoji = (this.activeProfile && this.activeProfile.avatar) || '📿';
+                    emoji.innerText = activeEmoji;
+                }, 3000);
+            }
+            // Set the idle timer again
+            this.resetIdleTimer();
+        }, this.idleLimit);
+    },
+
+    stopIdleTimer() {
+        if (this.idleTimer) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+    },
+
+    exportBackup() {
+        this.saveDb(); // Ensure latest states are written
+
+        // Generate filename with date
+        const d = new Date();
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const filename = `naam_jap_backup_${dateStr}.json`;
+
+        // Create blob download trigger
+        const jsonStr = JSON.stringify(this.db, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Resonant Tibetan bowl feedback on saving
+        playSynthSound('bowl');
+
+        this.showStatus("Backup saved to file!", false);
+    },
+
+    importBackup(file) {
+        const reader = new FileReader();
+        const self = this;
+        
+        reader.onload = function(e) {
+            try {
+                const importedDb = JSON.parse(e.target.result);
+                
+                if (!importedDb || !Array.isArray(importedDb.profiles)) {
+                    throw new Error("Invalid backup file structure.");
+                }
+
+                // Merge imported profiles back into local db
+                importedDb.profiles.forEach(importedProfile => {
+                    // Try to match profile by ID, fallback to match by Name
+                    let localProfile = self.db.profiles.find(p => p.id === importedProfile.id);
+                    if (!localProfile) {
+                        localProfile = self.db.profiles.find(p => p.name.toLowerCase() === importedProfile.name.toLowerCase());
+                    }
+
+                    if (localProfile) {
+                        // Merge counts
+                        if (importedProfile.history) {
+                            if (!localProfile.history) localProfile.history = {};
+                            
+                            Object.keys(importedProfile.history).forEach(date => {
+                                const localCount = localProfile.history[date] || 0;
+                                const fileCount = importedProfile.history[date] || 0;
+                                // Keep maximum count to prevent losing progress
+                                localProfile.history[date] = Math.max(localCount, fileCount);
+                            });
+                        }
+                        if (importedProfile.avatar) localProfile.avatar = importedProfile.avatar;
+                    } else {
+                        // New profile - insert
+                        self.db.profiles.push({
+                            id: importedProfile.id || 'profile_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                            name: importedProfile.name,
+                            avatar: importedProfile.avatar || '🧘',
+                            createdAt: importedProfile.createdAt || new Date().toISOString(),
+                            history: importedProfile.history || {}
+                        });
+                    }
+                });
+
+                self.saveDb();
+                self.renderProfiles();
+                
+                // Play bowl chime on success
+                playSynthSound('bowl');
+                self.showStatus("Backup imported and merged successfully!", false);
+
+            } catch (err) {
+                console.error(err);
+                playSynthSound('wrong');
+                self.showStatus("Error: Invalid JSON file structure.", true);
+            }
+        };
+
+        reader.readAsText(file);
+    },
+
+    renderHistoryChart(profile) {
+        const chartContainer = document.getElementById('nj-history-chart');
+        if (!chartContainer) return;
+
+        chartContainer.innerHTML = '';
+        
+        // Generate last 7 days dates
+        const days = [];
+        const today = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            days.push(d);
+        }
+
+        // Get max count to scale heights
+        let maxVal = 0;
+        const counts = days.map(d => {
+            const dateKey = this.formatDate(d);
+            const count = (profile.history && profile.history[dateKey]) || 0;
+            if (count > maxVal) maxVal = count;
+            return { dateLabel: this.formatDateLabel(d), count: count };
+        });
+
+        // If all days are 0, set scale base to 10
+        if (maxVal === 0) maxVal = 10;
+
+        counts.forEach(day => {
+            const heightPercent = Math.min(100, Math.max(2, (day.count / maxVal) * 100));
+            
+            const barContainer = document.createElement('div');
+            barContainer.className = 'history-bar-container';
+            barContainer.innerHTML = `
+                <div class="history-bar" style="height: ${heightPercent}px;">
+                    <div class="history-bar-tooltip">${day.count}</div>
+                </div>
+                <div class="history-date">${day.dateLabel}</div>
+            `;
+            chartContainer.appendChild(barContainer);
+        });
+    },
+
+    showStatus(msg, isError) {
+        const statusEl = document.getElementById('nj-backup-status');
+        if (!statusEl) return;
+
+        statusEl.innerText = msg;
+        statusEl.className = 'backup-status' + (isError ? ' error' : '');
+
+        setTimeout(() => {
+            if (statusEl.innerText === msg) {
+                statusEl.innerText = '';
+            }
+        }, 5000);
+    },
+
+    // UTILITIES
+    getTodayString() {
+        return this.formatDate(new Date());
+    },
+
+    formatDate(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
+    formatDateLabel(d) {
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        return `${day}/${month}`;
+    },
+
+    escapeHTML(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+};
+
+// Initialize Naam Jap Tracker
+NaamJapManager.init();
