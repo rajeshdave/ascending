@@ -1519,18 +1519,7 @@ const NaamJapManager = {
     exportBackup() {
         this.saveDb(); // Ensure latest states are written
 
-        // Generate filename with date and unique time (hours, minutes, seconds)
-        // This avoids the browser "Download this file again?" warning dialogue on Android and iOS
-        const d = new Date();
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        const timeStr = `${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
-        
-        let profilePart = 'all_profiles';
-        if (this.activeProfile) {
-            profilePart = this.activeProfile.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        }
-        
-        const filename = `naam_jap_${profilePart}_${dateStr}_${timeStr}.json`;
+        const filename = "naam_jap_backup.json";
 
         // Create blob download trigger
         const jsonStr = JSON.stringify(this.db, null, 2);
