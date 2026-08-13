@@ -956,6 +956,20 @@ const NaamJapManager = {
         
         // Bind event listeners
         this.bindEvents();
+
+        // Check for vibration support (iOS Safari does not support Vibration API)
+        const chkVibrate = document.getElementById('nj-chk-vibrate');
+        if (chkVibrate) {
+            if (!navigator.vibrate) {
+                chkVibrate.disabled = true;
+                chkVibrate.checked = false;
+                const label = chkVibrate.nextElementSibling;
+                if (label) {
+                    label.innerText = "📳 Vibration (N/A)";
+                    label.title = "Vibration is not supported on this device/browser (e.g. iOS iPhone)";
+                }
+            }
+        }
     },
 
     loadDb() {
@@ -1038,15 +1052,8 @@ const NaamJapManager = {
         // Giant Chant Tapping Zone
         const tapZone = document.getElementById('nj-tap-zone');
         if (tapZone) {
-            // Touchstart for faster response on mobile, click for desktop fallback
-            const handleChantTap = (e) => {
-                e.preventDefault();
-                self.chantTap();
-            };
-            tapZone.addEventListener('touchstart', handleChantTap, { passive: false });
-            tapZone.addEventListener('mousedown', (e) => {
-                // If it's a touch device, touchstart will fire and handle it, ignore mouse down to avoid double tap counts
-                if ('ontouchstart' in window) return;
+            // pointerdown handles both touch and mouse click instantly, counting as user gesture for iOS audio context activation
+            tapZone.addEventListener('pointerdown', (e) => {
                 self.chantTap();
             });
         }
